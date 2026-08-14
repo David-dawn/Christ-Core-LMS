@@ -1,0 +1,16 @@
+.env*
+!.env.example
+.next/
+node_modules/
+out/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vercel/
+dev-server*.log
+tsconfig.tsbuildinfo
+.freebuff
+AGENTS.md
+CLAUDE.md

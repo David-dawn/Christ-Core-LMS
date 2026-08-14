@@ -1,0 +1,307 @@
+@import "tailwindcss";
+
+/* ============================================
+   CHRIST-CORE BRAND TOKENS
+   Source: Christ-Core "Breaking Into Tech" flyer
+   ============================================ */
+@theme {
+  --color-navy-deep: #041a54;
+  --color-navy: #10317d;
+  --color-brand: #214bad;
+  --color-brand-bright: #4b6fef;
+  --color-brand-light: #8ea6e8;
+  --color-mist: #eef4fc;
+
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue",
+    Arial, sans-serif;
+}
+
+:root {
+  --background: #041a54;
+  --foreground: #eef4fc;
+  --muted: #a9bbe8;
+  --panel: rgba(33, 75, 173, 0.15);
+  --panel-strong: rgba(33, 75, 173, 0.3);
+  --border: rgba(255, 255, 255, 0.12);
+  --brand: #214bad;
+  --brand-strong: #4b6fef;
+  --brand-light: #8ea6e8;
+  --accent: #4b6fef;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--foreground);
+  background:
+    radial-gradient(1100px 620px at 12% -10%, rgba(75, 111, 239, 0.24), transparent 60%),
+    radial-gradient(1000px 560px at 106% 8%, rgba(33, 75, 173, 0.4), transparent 55%),
+    radial-gradient(900px 640px at 50% 118%, rgba(16, 49, 125, 0.55), transparent 62%),
+    linear-gradient(160deg, #041a54 0%, #0a2266 46%, #061b57 100%);
+  background-attachment: fixed;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Subtle technical grid overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(142, 166, 232, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(142, 166, 232, 0.055) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 100%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(75, 111, 239, 0.45);
+  color: #fff;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Slim, branded scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(142, 166, 232, 0.35) transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(142, 166, 232, 0.3);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 111, 239, 0.55);
+  background-clip: content-box;
+  border: 2px solid transparent;
+}
+
+/* ============ SURFACES ============ */
+.glass {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(33, 75, 173, 0.15);
+  box-shadow:
+    0 24px 80px rgba(2, 10, 38, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glass-strong {
+  border: 1px solid rgba(142, 166, 232, 0.22);
+  background: rgba(33, 75, 173, 0.26);
+  box-shadow:
+    0 24px 80px rgba(2, 10, 38, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.soft-panel {
+  border: 1px solid rgba(142, 166, 232, 0.16);
+  background: rgba(33, 75, 173, 0.12);
+}
+
+.glass-hover {
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
+}
+.glass-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(142, 166, 232, 0.4);
+  box-shadow:
+    0 18px 50px rgba(2, 10, 38, 0.45),
+    0 0 34px rgba(75, 111, 239, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ============ TEXT ============ */
+.text-muted {
+  color: var(--muted);
+}
+
+.text-gradient {
+  background: linear-gradient(100deg, #8ea6e8 0%, #4b6fef 55%, #8ea6e8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ============ NAV LINK ============ */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(238, 244, 252, 0.66);
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #eef4fc;
+}
+.nav-link-active {
+  background: linear-gradient(90deg, rgba(75, 111, 239, 0.32), rgba(33, 75, 173, 0.28));
+  color: #fff;
+  box-shadow:
+    inset 0 0 0 1px rgba(142, 166, 232, 0.28),
+    0 4px 18px rgba(75, 111, 239, 0.22);
+}
+
+/* ============ FORM ============ */
+.field-input {
+  margin-top: 0.5rem;
+  width: 100%;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
+  padding: 0.6rem 0.85rem;
+  color: #eef4fc;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.field-input::placeholder {
+  color: rgba(238, 244, 252, 0.38);
+}
+.field-input:focus {
+  outline: none;
+  border-color: rgba(142, 166, 232, 0.55);
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 0 0 3px rgba(75, 111, 239, 0.25);
+}
+.field-input option {
+  background: #0a2266;
+  color: #eef4fc;
+}
+
+.field-select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238EA6E8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.4rem;
+}
+
+/* ============ ANIMATIONS ============ */
+/* CSS-only reveal (replaces the GSAP reveal — zero client JS, honors reduced motion) */
+.cc-reveal {
+  animation: cc-reveal-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.cc-reveal-stagger {
+  animation: none;
+}
+
+.cc-reveal-stagger > * {
+  animation: cc-reveal-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--cc-base-delay, 0s) + var(--cc-stagger, 0.08s) * 1);
+}
+.cc-reveal-stagger > *:nth-child(2) {
+  animation-delay: calc(var(--cc-base-delay, 0s) + var(--cc-stagger, 0.08s) * 2);
+}
+.cc-reveal-stagger > *:nth-child(3) {
+  animation-delay: calc(var(--cc-base-delay, 0s) + var(--cc-stagger, 0.08s) * 3);
+}
+.cc-reveal-stagger > *:nth-child(4) {
+  animation-delay: calc(var(--cc-base-delay, 0s) + var(--cc-stagger, 0.08s) * 4);
+}
+.cc-reveal-stagger > *:nth-child(5) {
+  animation-delay: calc(var(--cc-base-delay, 0s) + var(--cc-stagger, 0.08s) * 5);
+}
+.cc-reveal-stagger > *:nth-child(6) {
+  animation-delay: calc(var(--cc-base-delay, 0s) + var(--cc-stagger, 0.08s) * 6);
+}
+
+@keyframes cc-reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--cc-y, 18px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-reveal,
+  .cc-reveal-stagger > * {
+    animation: none !important;
+  }
+}
+
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-slide-in {
+  animation: fade-slide-in 0.22s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
