@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { sendWelcomeEmail } from "@/lib/email";
+import { sendWelcomeEmail, siteUrl } from "@/lib/email";
 import { isNetworkError } from "@/lib/network";
 import { createClient } from "@/lib/supabase/server";
 import type { SkillLevel, Track } from "@/types/database";
@@ -92,7 +92,7 @@ export async function signOutAction() {
 export async function forgotPasswordAction(_prevState: string | null, formData: FormData) {
   const supabase = await createClient();
   const email = value(formData, "email");
-  const origin = value(formData, "origin") || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const origin = value(formData, "origin") || (await siteUrl());
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/reset-password`
   });

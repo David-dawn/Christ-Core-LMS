@@ -1,5 +1,5 @@
 
-import { Resend } from "resend";
+import { headers } from "next/headers";
 import type { SkillLevel, Track } from "@/types/database";
 
 const TRACK_LABELS: Record<Track, string> = {
@@ -41,8 +41,39 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#039;");
 }
 
-function siteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
+/**
+ * Parses the EMAIL_FROM env var, which supports the standard
+ * "Display Name <email@example.com>" format (or a bare email). The result is
+ * passed to Brevo's sender object.
+ */
+function parseSender(from: string): { name: string; email: string } {
+  const match = /^\s*(.*?)\s*<([^>]+)>/.exec(from);
+  if (match) {
+    return { name: match[1].trim() || "Christ-Core LMS", email: match[2].trim() };
+  }
+  return { name: "Christ-Core LMS", email: from.trim() };
+}
+
+/**
+ * The absolute origin used for assets inside the email (e.g. the logo).
+ * Prefers NEXT_PUBLIC_SITE_URL; otherwise derives it from the incoming
+ * request (Vercel sets x-forwarded-host/x-forwarded-proto), so the logo
+ * resolves on production even if the env var is missing. Falls back to
+ * localhost for local development only.
+ */
+export async function siteUrl(): Promise<string> {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
+  }
+  try {
+    const h = await headers();
+    const host = h.get("x-forwarded-host") ?? h.get("host");
+    const proto = h.get("x-forwarded-proto") ?? "https";
+    if (host) return `${proto}://${host}`;
+  } catch {
+    // headers() can throw outside a request context — fall through.
+  }
+  return "http://localhost:3000";
 }
 
 /**
@@ -50,12 +81,12 @@ function siteUrl(): string {
  * Christ-Core logo (public/logo-transparent.png) referenced by absolute
  * URL so email clients can load it, and only the Christ-Core palette.
  */
-function renderWelcomeEmailHtml(input: WelcomeEmailInput): string {
+async function renderWelcomeEmailHtml(input: WelcomeEmailInput): Promise<string> {
   const name = escapeHtml(input.fullName);
   const email = escapeHtml(input.to);
   const track = TRACK_LABELS[input.track];
   const skillLevel = SKILL_LABELS[input.skillLevel];
-  const logoUrl = `${siteUrl()}/logo-transparent.png`;
+  const logoUrl = `${await siteUrl()}/logo-transparent.png`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -160,38 +191,51 @@ Christ-Core Digital Services
 }
 
 /**
- * Sends the branded registration-confirmation email via Resend.
+ * Sends the branded registration-confirmation email via Brevo's
+ * transactional email API (POST https://api.brevo.com/v3/smtp/email).
  *
- * Never throws. Returns { ok: true } on success. On failure (or when the
- * provider is not configured) it logs a safe diagnostic and returns
+ * Server-only: the API key is read from the environment and never exposed to
+ * the client. Never throws. Returns { ok: true } on success; on failure (or
+ * when the provider is not configured) it logs a safe diagnostic and returns
  * { ok: false } so the caller can let registration complete regardless.
- * The recipient address and API key are never logged.
+ * The API key and recipient address are never logged.
  */
 export async function sendWelcomeEmail(input: WelcomeEmailInput): Promise<{ ok: boolean }> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = process.env.BREVO_API_KEY;
   const from = process.env.EMAIL_FROM;
 
   if (!apiKey || !from) {
-    console.warn("[email] RESEND_API_KEY or EMAIL_FROM is not configured; welcome email skipped.");
+    console.warn("[email] BREVO_API_KEY or EMAIL_FROM is not configured; welcome email skipped.");
     return { ok: false };
   }
 
   try {
-    const resend = new Resend(apiKey);
-    const { error } = await resend.emails.send({
-      from,
-      to: [input.to],
-      subject: "Welcome to the Christ-Core LMS 🎉",
-      html: renderWelcomeEmailHtml(input),
-      text: renderWelcomeEmailText(input)
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "api-key": apiKey
+      },
+      body: JSON.stringify({
+        sender: parseSender(from),
+        to: [{ name: input.fullName, email: input.to }],
+        subject: "Welcome to the Christ-Core LMS 🎉",
+        htmlContent: await renderWelcomeEmailHtml(input),
+        textContent: renderWelcomeEmailText(input)
+      })
     });
 
-    if (error) {
-      console.error("[email] welcome email failed to send", {
-        name: error.name,
-        message: error.message,
-        statusCode: "statusCode" in error ? error.statusCode : undefined
-      });
+    if (!res.ok) {
+      // Brevo returns a JSON body like { code, message } on errors — safe to
+      // log (it never contains the API key or the recipient address).
+      let detail: unknown = null;
+      try {
+        detail = await res.json();
+      } catch {
+        detail = await res.text().catch(() => null);
+      }
+      console.error("[email] welcome email failed to send", { status: res.status, detail });
       return { ok: false };
     }
 
